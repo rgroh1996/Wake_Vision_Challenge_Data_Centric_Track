@@ -17,7 +17,7 @@ Install [docker engine](https://docs.docker.com/engine/install/).
 Run the following command inside the directory in which you cloned this repository.
 
 ```
-sudo docker run --gpus all -it --rm -v $PWD:/tmp -w /tmp andregara/wake_vision_challenge:cpu python data_centric_track.py
+sudo docker run -it --rm -v $PWD:/tmp -w /tmp andregara/wake_vision_challenge:cpu python data_centric_track.py
 ```
 
 It trains the [mcunet-vww2 model](https://github.com/mit-han-lab/mcunet) on the original dataset to get you started. 
