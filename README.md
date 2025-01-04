@@ -1,43 +1,87 @@
-# Wake Vision Challenge: _Data-Centric Track_
+# 🚀 **Data-Centric Track**
 
-This is the official GitHub of the **Data-Centric Track** of the Wake Vision Challenge [Wake Vision Challenge](https://edgeai.modelnova.ai/challenges/details/1).
+Welcome to the **Data-Centric Track** of the **Wake Vision Challenge**! 🎉
 
-It asks participants to **push the boundaries of tiny computer vision** by enhancing the data quality of the newly released [Wake Vision](https://wakevision.ai/), a person detection dataset.
+The goal of this track is to **push the boundaries of tiny computer vision** by enhancing the data quality of the newly released [Wake Vision Dataset](https://wakevision.ai/).
 
-Participants will be able to **modify** as they want the **provided data**. 
+🔗 **Learn More**: [Wake Vision Challenge Details](https://edgeai.modelnova.ai/challenges/details/1)
 
-The quality increments will be assessed over a private dataset, after training the [mcunet-vww2 model](https://github.com/mit-han-lab/mcunet), a state-of-the-art model in person detection, on the resulting dataset.
+---
 
-## To Get Started
+## 🌟 **Challenge Overview**
 
-Install [docker engine](https://docs.docker.com/engine/install/).
+Participants are invited to:
 
-### If you don't have a GPU 
+1. **Enhance the provided dataset** to improve person detection accuracy.
+2. Assess quality improvements on a private test set.
+3. Train the [MCUNet-VWW2 model](https://github.com/mit-han-lab/mcunet), a state-of-the-art person detection model.
 
-Run the following command inside the directory in which you cloned this repository.
+You can modify the **dataset** however you like, but the **model architecture must remain unchanged**. 🛠️
 
-```
+---
+
+## 🛠️ **Getting Started**
+
+### Step 1: Install Docker Engine 🐋
+
+First, install Docker on your machine:
+- [Install Docker Engine](https://docs.docker.com/engine/install/).
+
+---
+
+### 💻 **Running Without a GPU**
+
+Run the following command inside the directory where you cloned this repository:
+
+```bash
 sudo docker run -it --rm -v $PWD:/tmp -w /tmp andregara/wake_vision_challenge:cpu python data_centric_track.py
 ```
 
-It trains the [mcunet-vww2 model](https://github.com/mit-han-lab/mcunet) on the original dataset to get you started. 
+- This trains the [MCUNet-VWW2 model](https://github.com/mit-han-lab/mcunet) on the original dataset.
+- Modify the dataset to improve the model's test accuracy by correcting labels or augmenting data.
 
-Then you can modify the dataset to enhance the model's test accuracy, such as by correcting labels or augmenting the data. Just don't change the model architecture.
+💡 **Note**: The first execution may take several hours as it downloads the full dataset (~365 GB).
 
-The first execution will require a lot of hours since it has to download the whole dataset on your machine (365 GB).
+---
 
-### If you have a GPU
+### ⚡ **Running With a GPU**
 
-Install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) (if you have problems, [check your GPU drivers](https://ubuntu.com/server/docs/nvidia-drivers-installation)).
+1. Install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
+2. Verify your [GPU drivers](https://ubuntu.com/server/docs/nvidia-drivers-installation).
 
-Run the following command inside the directory in which you cloned this repository.
+Run the following command inside the directory where you cloned this repository:
 
-```
+```bash
 sudo docker run --gpus all -it --rm -v $PWD:/tmp -w /tmp andregara/wake_vision_challenge:gpu python data_centric_track.py
 ```
 
-It trains the [mcunet-vww2 model](https://github.com/mit-han-lab/mcunet) on the original dataset to get you started. 
+- This trains the [MCUNet-VWW2 model](https://github.com/mit-han-lab/mcunet) on the original dataset.
+- Modify the dataset to enhance test accuracy while keeping the model architecture unchanged.
 
-Then you can modify the dataset to enhance the model's test accuracy, such as by correcting labels or augmenting the data. Just don't change the model architecture.
+💡 **Note**: The first execution may take several hours as it downloads the full dataset (~365 GB).
 
-The first execution will require a lot of hours since it has to download the whole dataset on your machine (365 GB).
+---
+
+## 🎯 **Tips for Success**
+
+- **Focus on Data Quality**: Explore label correction, data augmentation, and other preprocessing techniques.
+- **Stay Efficient**: The dataset is large, so plan your modifications carefully.
+- **Collaborate**: Join the [community discussions](#) to share ideas and tips!
+
+---
+
+## 📚 **Resources**
+
+- [MCUNet-VWW2 Model Documentation](https://github.com/mit-han-lab/mcunet)
+- [Docker Documentation](https://docs.docker.com/)
+- [Wake Vision Dataset](https://wakevision.ai/)
+
+---
+
+## 📞 **Contact Us**
+
+Have questions or need help? Reach out by simply filing a GitHub issue.
+
+---
+
+🌟 **Happy Innovating and Good Luck!** 🌟
