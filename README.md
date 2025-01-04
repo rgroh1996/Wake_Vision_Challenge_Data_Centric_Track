@@ -1,4 +1,4 @@
-# Data-Centric Track
+# Wake Vision Challenge: _Data-Centric Track_
 
 This is the official GitHub of the **Data-Centric Track** of the Wake Vision Challenge [Wake Vision Challenge](https://edgeai.modelnova.ai/challenges/details/1).
 
