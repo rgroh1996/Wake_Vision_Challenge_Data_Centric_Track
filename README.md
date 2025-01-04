@@ -2,7 +2,7 @@
 
 Welcome to the **Data-Centric Track** of the **Wake Vision Challenge**! 🎉
 
-The goal of this track is to **push the boundaries of tiny computer vision** by enhancing the data quality of the newly released [Wake Vision Dataset](https://wakevision.ai/).
+The goal of this track is to **push the boundaries of tiny computer vision** by enhancing the data quality of the [Wake Vision Dataset](https://wakevision.ai/).
 
 🔗 **Learn More**: [Wake Vision Challenge Details](https://edgeai.modelnova.ai/challenges/details/1)
 
