@@ -66,7 +66,7 @@ sudo docker run --gpus all -it --rm -v $PWD:/tmp -w /tmp andregara/wake_vision_c
 
 - **Focus on Data Quality**: Explore label correction, data augmentation, and other preprocessing techniques.
 - **Stay Efficient**: The dataset is large, so plan your modifications carefully.
-- **Collaborate**: Join the [community discussions](#) to share ideas and tips!
+- **Collaborate**: Join the community discussion on [Discord](https://discord.com/channels/803180012572114964/1323721087170773002) to share ideas and tips!
 
 ---
 
@@ -80,7 +80,7 @@ sudo docker run --gpus all -it --rm -v $PWD:/tmp -w /tmp andregara/wake_vision_c
 
 ## 📞 **Contact Us**
 
-Have questions or need help? Reach out by simply filing a GitHub issue.
+Have questions or need help? Reach out on [Discord](https://discord.com/channels/803180012572114964/1323721087170773002).
 
 ---
 
