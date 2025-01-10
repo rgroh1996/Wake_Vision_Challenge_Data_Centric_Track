@@ -13,7 +13,7 @@ The goal of this track is to **push the boundaries of tiny computer vision** by 
 Participants are invited to:
 
 1. **Enhance the provided dataset** to improve person detection accuracy.
-2. Assess quality improvements on a private test set.
+2. Assess quality improvements on the public test set.
 3. Train the [MCUNet-VWW2 model](https://github.com/mit-han-lab/mcunet), a state-of-the-art person detection model.
 
 You can modify the **dataset** however you like, but the **model architecture must remain unchanged**. 🛠️
