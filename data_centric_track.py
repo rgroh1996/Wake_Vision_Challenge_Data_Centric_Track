@@ -5,6 +5,20 @@ import tensorflow as tf #for designing and training the model
 
 model_name = 'wv_quality_mcunet-320kb-1mb_vww'
 
+# Function to parse TFRecord example
+def parse_tfrecord(example_proto):
+    feature_description = {
+        "image": tf.io.FixedLenFeature([], tf.string),
+        "label": tf.io.FixedLenFeature([], tf.int64),
+    }
+    parsed_example = tf.io.parse_single_example(example_proto, feature_description)
+    
+    # Decode image
+    img = tf.image.decode_jpeg(parsed_example["image"], channels=3)
+    #img = tf.image.convert_image_dtype(img, tf.float32)  # Normalize to [0,1]
+    
+    return img, parsed_example["label"]
+
 #fixed hyperparameters 
 #do not change them
 input_shape = (144,144,3)
@@ -40,8 +54,15 @@ data_augmentation = tf.keras.Sequential([
     #apply some data augmentation 
     tf.keras.layers.RandomFlip("horizontal"),
     tf.keras.layers.RandomRotation(0.2)])
-    
-train_ds = train_ds.shuffle(1000).map(lambda x, y: (data_augmentation(x, training=True), y), num_parallel_calls=tf.data.AUTOTUNE).batch(batch_size).prefetch(tf.data.AUTOTUNE)
+
+raw_dataset = tf.data.TFRecordDataset("dataset_person.tfrecord")
+additional_ds_person = raw_dataset.map(parse_tfrecord).map(lambda img, label: (data_preprocessing(img), label)).shuffle(1000).batch(32)
+
+raw_dataset = tf.data.TFRecordDataset("dataset_no_person.tfrecord")
+additional_ds_no_person = raw_dataset.map(parse_tfrecord).map(lambda img, label: (data_preprocessing(img), label), num_parallel_calls=tf.data.AUTOTUNE)
+train_ds = train_ds.map(lambda x, y: (data_augmentation(x, training=True), y), num_parallel_calls=tf.data.AUTOTUNE)
+train_ds = train_ds.concatenate(additional_ds_person).concatenate(additional_ds_no_person).shuffle(1000).batch(batch_size).prefetch(tf.data.AUTOTUNE)
+
 val_ds = val_ds.map(lambda x, y: (data_preprocessing(x, training=True), y), num_parallel_calls=tf.data.AUTOTUNE).batch(batch_size).prefetch(tf.data.AUTOTUNE)
 test_ds = test_ds.map(lambda x, y: (data_preprocessing(x, training=True), y), num_parallel_calls=tf.data.AUTOTUNE).batch(1).prefetch(tf.data.AUTOTUNE)
 
@@ -325,7 +346,10 @@ x = keras.layers.AveragePooling2D(5)(x)
 x = keras.layers.Conv2D(2, (1,1), padding='valid')(x)
 outputs = keras.layers.Reshape((2,))(x)
 
-model = keras.Model(inputs, outputs)
+#model = keras.Model(inputs, outputs)
+
+# load model from file
+model = tf.keras.models.load_model(model_name + ".tf")
 
 #compile model
 opt = tf.keras.optimizers.Adam(learning_rate=learning_rate)
