@@ -3,3 +3,5 @@ datasets/
 hub/
 *.tf
 .venv/
+*.pt
+*.pth
