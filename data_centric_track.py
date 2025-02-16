@@ -360,6 +360,23 @@ model.compile(
     metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
 )
 
+class SaveBatchOutputCallback(tf.keras.callbacks.Callback):
+    def __init__(self, file_path="training_log.txt", batch_interval=100):
+        self.file_path = file_path
+        self.batch_interval = batch_interval
+
+    def on_train_batch_end(self, batch, logs=None):
+        logs = logs or {}
+        if (batch + 1) % self.batch_interval == 0:  # Every 100 batches
+            with open(self.file_path, "a") as f:
+                f.write(f"Batch {batch + 1}:\n")
+                for key, value in logs.items():
+                    f.write(f"{key}: {value}\n")
+                f.write("\n")
+
+# Usage Example
+save_callback = SaveBatchOutputCallback("training_log.txt", batch_interval=10)
+
 #set validation based early stopping
 model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath= model_name + ".tf",
@@ -367,7 +384,7 @@ model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     mode='max', save_best_only=True)
     
 #training
-model.fit(train_ds, epochs=epochs, validation_data=val_ds, callbacks=[model_checkpoint_callback])
+model.fit(train_ds, epochs=epochs, validation_data=val_ds, callbacks=[model_checkpoint_callback, save_callback])
 
 #Post Training Quantization (PTQ)
 model = tf.keras.models.load_model(model_name + ".tf")
