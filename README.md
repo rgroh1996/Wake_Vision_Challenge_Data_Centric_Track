@@ -1,4 +1,4 @@
-# Person Image Augmentation Using YOLOv8, SAMv2, and OpenCV
+# Person Image Augmentation Using YOLOv8, SAM and OpenCV
 
 ## **Overview**
 This README provides a pipeline for augmenting the Wake Vision dataset by blending extracted persons into new backgrounds. It consists of three main steps:
