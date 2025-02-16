@@ -15,7 +15,7 @@ def parse_tfrecord(example_proto):
     
     # Decode image
     img = tf.image.decode_jpeg(parsed_example["image"], channels=3)
-    #img = tf.image.convert_image_dtype(img, tf.float32)  # Normalize to [0,1]
+    img = tf.image.convert_image_dtype(img, tf.float32)  # Normalize to [0,1]
     
     return img, parsed_example["label"]
 
@@ -56,12 +56,13 @@ data_augmentation = tf.keras.Sequential([
     tf.keras.layers.RandomRotation(0.2)])
 
 raw_dataset = tf.data.TFRecordDataset("dataset_person.tfrecord")
-additional_ds_person = raw_dataset.map(parse_tfrecord).map(lambda img, label: (data_preprocessing(img), label)).shuffle(1000).batch(32)
+additional_ds_person = raw_dataset.map(parse_tfrecord).map(lambda img, label: (data_preprocessing(img), label), num_parallel_calls=tf.data.AUTOTUNE)
 
 raw_dataset = tf.data.TFRecordDataset("dataset_no_person.tfrecord")
 additional_ds_no_person = raw_dataset.map(parse_tfrecord).map(lambda img, label: (data_preprocessing(img), label), num_parallel_calls=tf.data.AUTOTUNE)
+
 train_ds = train_ds.map(lambda x, y: (data_augmentation(x, training=True), y), num_parallel_calls=tf.data.AUTOTUNE)
-train_ds = train_ds.concatenate(additional_ds_person).concatenate(additional_ds_no_person).shuffle(1000).batch(batch_size).prefetch(tf.data.AUTOTUNE)
+train_ds = train_ds.concatenate(additional_ds_person).concatenate(additional_ds_no_person).shuffle(100_000).batch(batch_size).prefetch(tf.data.AUTOTUNE)
 
 val_ds = val_ds.map(lambda x, y: (data_preprocessing(x, training=True), y), num_parallel_calls=tf.data.AUTOTUNE).batch(batch_size).prefetch(tf.data.AUTOTUNE)
 test_ds = test_ds.map(lambda x, y: (data_preprocessing(x, training=True), y), num_parallel_calls=tf.data.AUTOTUNE).batch(1).prefetch(tf.data.AUTOTUNE)
