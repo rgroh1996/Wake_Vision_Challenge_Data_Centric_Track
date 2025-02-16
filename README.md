@@ -1,87 +1,122 @@
-# 🚀 **Data-Centric Track**
+# Person Image Augmentation Using YOLOv8, SAMv2, and OpenCV
 
-Welcome to the **Data-Centric Track** of the **Wake Vision Challenge**! 🎉
+## **Overview**
+This README provides a pipeline for augmenting the Wake Vision dataset by blending extracted persons into new backgrounds. It consists of three main steps:
+1. **Detect persons using YOLOv8** to get bounding boxes.
+2. **Segment the detected persons using SAM**.
+3. **Blend segmented persons into new backgrounds**.
 
-The goal of this track is to **push the boundaries of tiny computer vision** by enhancing the data quality of the [Wake Vision Dataset](https://wakevision.ai/).
-
-🔗 **Learn More**: [Wake Vision Challenge Details](https://edgeai.modelnova.ai/challenges/details/1)
-
----
-
-## 🌟 **Challenge Overview**
-
-Participants are invited to:
-
-1. **Enhance the provided dataset** to improve person detection accuracy.
-2. Train the [MCUNet-VWW2 model](https://github.com/mit-han-lab/mcunet), a state-of-the-art person detection model, on the enhanced dataset.
-3. Assess quality improvements on the public test set.
-
-You can modify the **dataset** however you like, but the **model architecture must remain unchanged**. 🛠️
+By using **Poisson Image Editing**, the inserted persons blend naturally into different scenes, increasing dataset diversity for training the model.
 
 ---
 
-## 🛠️ **Getting Started**
+## **1. Detecting Persons with YOLOv8**
+**YOLOv8** (You Only Look Once) is a state-of-the-art object detection model that efficiently detects persons in images.
 
-### Step 1: Install Docker Engine 🐋
+### **Setup YOLOv8**
+1. Install YOLOv8:
+   ```bash
+   pip install ultralytics opencv-python torch torchvision
+   ```
+2. Run YOLOv8 to detect persons:
+   ```python
+    # Run YOLOv8 to detect persons
+    yolo_model = YOLO("yolov8n.pt")  # Small model for fast inference
+    yolo_results = yolo_model(image)[0]
+    
+    person_boxes = []
+    for result in yolo_results.boxes.data:
+        x1, y1, x2, y2, conf, cls = result.cpu().numpy()
+        if int(cls) == 0:  # Class 0 = Person
+            
+            # # check confidence
+            if conf < 0.9:
+                print(f"Person detected with low confidence {conf}.")
+                return None, None
+            
+            person_boxes.append([int(x1), int(y1), int(x2), int(y2)])
 
-First, install Docker on your machine:
-- [Install Docker Engine](https://docs.docker.com/engine/install/).
+    if not person_boxes:
+        print("No persons detected.")
+        return np.zeros_like(image[:, :, 0]), image  # Empty mask
+
+   ```
 
 ---
 
-### 💻 **Running Without a GPU**
+## **2. Segmenting Persons with SAM**
+**Segment Anything Model** is used to segment the detected persons precisely.
 
-Run the following command inside the directory where you cloned this repository:
+### **Setup SAMv2**
+1. Install SAM:
+   ```bash
+   pip install git+https://github.com/facebookresearch/segment-anything.git
+   ```
+2. Download the SAM model checkpoint:
+   ```bash
+   wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth -O sam_vit_b.pth
+   ```
 
-```bash
-sudo docker run -it --rm -v $PWD:/tmp -w /tmp andregara/wake_vision_challenge:cpu python data_centric_track.py
+### **Segmenting Persons**
+```python
+    model_type = "vit_b"
+    sam_checkpoint = "sam_vit_b.pth"  # Ensure this file is downloaded
+
+    sam = sam_model_registry[model_type](checkpoint=sam_checkpoint).to("cuda")
+    predictor = SamPredictor(sam)
+
+        predictor.set_image(image)
+
+    # Generate masks for all detected persons
+    masks = []
+    for box in person_boxes:
+        mask, _, _ = predictor.predict(box=np.array(box), multimask_output=False)
+        masks.append(mask[0])
+
+    # Merge all person masks
+    if masks:
+        person_mask = np.any(masks, axis=0).astype(np.uint8) * 255
+    else:
+        person_mask = np.zeros_like(image[:, :, 0])  # Empty mask
+
+    return person_mask, image
+
 ```
 
-- This trains the [MCUNet-VWW2 model](https://github.com/mit-han-lab/mcunet) on the original dataset.
-- Modify the dataset to improve the model's test accuracy by correcting labels or augmenting data.
-
-💡 **Note**: The first execution may take several hours as it downloads the full dataset (~365 GB).
-
 ---
 
-### ⚡ **Running With a GPU**
+## **3. Blending with OpenCV’s `seamlessClone`**
+### **What is `seamlessClone`?**
+`cv2.seamlessClone` implements **Poisson Image Editing**, allowing the seamless insertion of an object (person) into another image (background). It preserves the gradient flow to make the inserted object look naturally integrated.
 
-1. Install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
-2. Verify your [GPU drivers](https://ubuntu.com/server/docs/nvidia-drivers-installation).
+### **Blending Persons into Backgrounds**
+```python
+def blend_person_with_background(person, mask, background):
+    # Resize person to fit background
+    h_bg, w_bg, _ = background.shape
+    h_p, w_p, _ = person.shape
 
-Run the following command inside the directory where you cloned this repository:
+    scale_factor = random.uniform(0.6, 0.8)  # Random scaling
+    # scale_factor = 0.9
+    new_w, new_h = int(w_p * scale_factor), int(h_p * scale_factor)
 
-```bash
-sudo docker run --gpus all -it --rm -v $PWD:/tmp -w /tmp andregara/wake_vision_challenge:gpu python data_centric_track.py
+    person_resized = cv2.resize(person, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+    mask_resized = cv2.resize(mask, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+
+    # Random position on background
+    x_offset = random.randint(0, w_bg - new_w)
+    y_offset = random.randint(0, h_bg - new_h)
+    center = (x_offset + new_w // 2, y_offset + new_h // 2)
+
+    # Apply Poisson seamless cloning
+    blended = cv2.seamlessClone(person_resized, background, mask_resized, center, cv2.NORMAL_CLONE)
+
+    return blended
 ```
 
-- This trains the [MCUNet-VWW2 model](https://github.com/mit-han-lab/mcunet) on the original dataset.
-- Modify the dataset to enhance test accuracy while keeping the model architecture unchanged.
-
-💡 **Note**: The first execution may take several hours as it downloads the full dataset (~365 GB).
-
 ---
 
-## 🎯 **Tips for Success**
-
-- **Focus on Data Quality**: Explore label correction, data augmentation, and other preprocessing techniques.
-- **Stay Efficient**: The dataset is large, so plan your modifications carefully.
-- **Collaborate**: Join the community discussion on [Discord](https://discord.com/channels/803180012572114964/1323721087170773002) to share ideas and tips!
-
----
-
-## 📚 **Resources**
-
-- [MCUNet-VWW2 Model Documentation](https://github.com/mit-han-lab/mcunet)
-- [Docker Documentation](https://docs.docker.com/)
-- [Wake Vision Dataset](https://wakevision.ai/)
-
----
-
-## 📞 **Contact Us**
-
-Have questions or need help? Reach out on [Discord](https://discord.com/channels/803180012572114964/1323721087170773002).
-
----
-
-🌟 **Happy Innovating and Good Luck!** 🌟
+## Examples
+![Example 1](./example_images/example_1.png)
+![Example 2](./example_images/example_2.png)
+![Example 3](./example_images/example_3.png)
